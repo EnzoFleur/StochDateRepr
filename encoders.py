@@ -55,13 +55,13 @@ class MLP(nn.Module):
 
             self.mlp = nn.Sequential(*[
                 nn.Linear(self.input_dim, self.hidden_dim),
-                # nn.Dropout(0.1),
+                nn.Dropout(0.2),
                 nn.ReLU(),
                 nn.Linear(self.hidden_dim, self.hidden_dim),
-                # nn.Dropout(0.1),
+                nn.Dropout(0.2),
                 nn.ReLU(),
                 nn.Linear(self.hidden_dim, self.hidden_dim),
-                # nn.Dropout(0.1),
+                nn.Dropout(0.2),
                 nn.ReLU(),
                 nn.Linear(self.hidden_dim, self.output_dim),
             ])
@@ -99,6 +99,11 @@ class BrownianEncoder(nn.Module):
 
         self.C_eta = nn.Linear(1, 1)
 
+        self.params = nn.ModuleDict({
+            'encoder': nn.ModuleList([self.encoder]),
+            'classifier': nn.ModuleList([self.MLP, self.C_eta])
+        })
+        
         # Switch off bias in linear layers
         # self.mlp.apply(weights_init)
         # self.log_q.apply(weights_init)

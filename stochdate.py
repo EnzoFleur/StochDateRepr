@@ -12,7 +12,7 @@ from sklearn.metrics import coverage_error,label_ranking_average_precision_score
 from encoders import DISTILBERT_PATH, BrownianEncoder
 from brownianlosses import BrownianBridgeLoss, BrownianLoss
 
-from transformers import get_linear_schedule_with_warmup
+from transformers import get_linear_schedule_with_warmup    
 from datasets import PapersDataset, NytDataset
 
 # Setting up the device for GPU usage
@@ -125,11 +125,14 @@ if __name__ == "__main__":
 
     total_steps = len(dataset_train) * EPOCHS
 
-    optimizer = torch.optim.Adam(params = ddp_model.parameters(), lr = LEARNING_RATE)
+    optimizer = torch.optim.Adam(params = [
+            {'params':ddp_model.module.encoder.parameters(), 'lr':3e-4},
+            {'params':ddp_model.module.classifier.parameters(), 'lr':LEARNING_RATE}
+        ])
 
-    # scheduler = get_linear_schedule_with_warmup(optimizer,
-    #                                             num_warmup_steps = 0, 
-    #                                             num_training_steps = total_steps)
+    scheduler = get_linear_schedule_with_warmup(optimizer,
+                                                num_warmup_steps = 0, 
+                                                num_training_steps = total_steps)
 
     batch = dataset_train[:BATCH_SIZE]
 
@@ -267,7 +270,7 @@ if __name__ == "__main__":
         
         return ce, lr, mae, acc
 
-    def fit(epochs, model, optimizer, dataset_train, dataset_test):
+    def fit(epochs, model, optimizer, scheduler, dataset_train, dataset_test):
 
         dataloader_train = DataLoader(dataset_train, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
         dataloader_test = DataLoader(dataset_test, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
@@ -289,6 +292,8 @@ if __name__ == "__main__":
                 loss.backward()
                 # torch.nn.utils.clip_grad_norm_(model.parameters(), CLIPNORM)
                 optimizer.step()
+
+                scheduler.step()
 
                 loss_training+= loss.item()
 
@@ -317,7 +322,7 @@ if __name__ == "__main__":
                 if ce is not None:
                     print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f" % (ce, lr, mae, acc), flush=True)
 
-    fit(EPOCHS, model, optimizer, dataset_train, dataset_test)
+    fit(EPOCHS, model, optimizer, scheduler, dataset_train, dataset_test)
 
     if (idr_torch.rank == 0):
         print("We're finished !")
