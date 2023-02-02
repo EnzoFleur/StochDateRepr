@@ -101,7 +101,7 @@ class BrownianEncoder(nn.Module):
 
         self.params = nn.ModuleDict({
             'encoder': nn.ModuleList([self.encoder]),
-            'classifier': nn.ModuleList([self.MLP, self.C_eta])
+            'classifier': nn.ModuleList([self.mlp, self.C_eta])
         })
         
         # Switch off bias in linear layers
