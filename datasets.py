@@ -63,7 +63,7 @@ class PapersDataset(Dataset):
 
         self.data = pd.read_csv(data_dir, encoding = 'utf-8', sep=';',
                                 dtype={'id':str},
-                                converters={'authors': literal_eval, 'categories':literal_eval})
+                                converters={'authors': literal_eval, 'topics':literal_eval})
         self.data = self.data.explode(self.axis)
 
         self.data['update_date'] = pd.to_datetime(self.data.update_date, format = '%d/%m/%Y')
@@ -88,8 +88,8 @@ class PapersDataset(Dataset):
 
         self.data = self.data.sort_values([self.axis, 'update_date'])
 
-        self.author2id = {a:i for i, a in enumerate(self.data[self.axis].unique())}
-        self.id2author = {i:a for a,i in self.author2id.items()}
+        self.axis2id = {a:i for i, a in enumerate(self.data[self.axis].unique())}
+        self.id2axis = {i:a for a,i in self.axis2id.items()}
 
         self.data['ddelta'] = (self.data.update_date - self.min_date).dt.days
 
@@ -97,9 +97,9 @@ class PapersDataset(Dataset):
 
         self.data['corpus_length'] = self.data.groupby(self.axis)[self.axis].transform("count")
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
-        self.data['authors_id'] = self.data['authors'].map(self.author2id)
+        self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[['authors_id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis2id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -153,7 +153,7 @@ class PapersDataset(Dataset):
             'class_t_': y_0['pdelta'],
             'class_t': y_t['pdelta'],
             'class_T': y_T['pdelta'],
-            'axis':y_0['authors_id']
+            'axis':y_0['axis_id']
         }
 
         return result
@@ -175,7 +175,7 @@ class NytDataset(Dataset):
         self.axis = axis
         self.time_precision = time_precision
 
-        with open(data_dir, 'r') as f:
+        with open(self.data_dir, 'r') as f:
             corpus = f.readlines()
 
         self.data = []
@@ -184,6 +184,8 @@ class NytDataset(Dataset):
 
         self.data = pd.DataFrame(self.data)
         self.data = self.data.explode('authors').explode('texts')
+
+        self.data = self.data.explode(self.axis)
 
         self.data['date'] = pd.to_datetime(self.data.date, format='%Y-%m-%d')
 
@@ -214,8 +216,8 @@ class NytDataset(Dataset):
 
         self.data = self.data.sort_values([self.axis, 'date'])
 
-        self.author2id = {a:i for i, a in enumerate(self.data[self.axis].unique())}
-        self.id2author = {i:a for a,i in self.author2id.items()}
+        self.axis2id = {a:i for i, a in enumerate(self.data[self.axis].unique())}
+        self.id2axis = {i:a for a,i in self.axis2id.items()}
 
         self.data['ddelta'] = (self.data.date - self.min_date).dt.days
 
@@ -223,9 +225,9 @@ class NytDataset(Dataset):
 
         self.data['corpus_length'] = self.data.groupby(self.axis)[self.axis].transform("count")
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
-        self.data['authors_id'] = self.data['authors'].map(self.author2id)
+        self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[['authors_id', 'corpus_length', 'doc_id', 'texts', 'pdelta', 'ddelta']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'texts', 'pdelta', 'ddelta']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -279,7 +281,7 @@ class NytDataset(Dataset):
             'class_t_': y_0['pdelta'],
             'class_t': y_t['pdelta'],
             'class_T': y_T['pdelta'],
-            'axis':y_0['authors_id']
+            'axis':y_0['axis_id']
         }
 
         return result

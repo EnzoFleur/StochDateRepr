@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
         return loss
 
-    def cosine_similarity(aut_embeddings, time_embeddings, doc_embeddings, authors, times):
+    def cosine_similarity(aut_embeddings, time_embeddings, doc_embeddings, axis, times):
 
         aut_embeddings = normalize(aut_embeddings, axis=1)
         doc_embeddings = normalize(np.vstack(doc_embeddings), axis=1)
@@ -201,7 +201,7 @@ if __name__ == "__main__":
         na = len(aut_embeddings)
 
         aut_doc_test = np.zeros((nd, na))
-        aut_doc_test[[i for i in range(nd)], [author for author in authors]] = 1
+        aut_doc_test[[i for i in range(nd)], [ax for ax in axis]] = 1
 
         y_score = normalize( doc_embeddings @ aut_embeddings.transpose(),norm="l1")
         ce = coverage_error(aut_doc_test, y_score)/na*100
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         return ce, lr, mae, acc
 
     def eval(model, dataset_test, dataset_train):
-        corpus_lengths = list(dataset_train.data[['authors_id', 'corpus_length']].drop_duplicates('authors_id')['corpus_length'])
+        corpus_lengths = list(dataset_train.data[['axis_id', 'corpus_length']].drop_duplicates('axis_id')['corpus_length'])
         texts = list(dataset_train.data.texts)
 
         author_embeddings = []
@@ -266,7 +266,7 @@ if __name__ == "__main__":
         doc_embeddings = np.vstack(doc_embeddings)
         author_embeddings = np.vstack(author_embeddings)
 
-        ce, lr, mae, acc = cosine_similarity(author_embeddings, time_embeddings, doc_embeddings, dataset_test.data.authors_id, dataset_test.data.timestep)
+        ce, lr, mae, acc = cosine_similarity(author_embeddings, time_embeddings, doc_embeddings, dataset_test.data.axis_id, dataset_test.data.timestep)
         
         return ce, lr, mae, acc
 
@@ -322,7 +322,7 @@ if __name__ == "__main__":
                 if not model.module.training:
                     print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f" % (ce, lr, mae, acc), flush=True)
 
-    fit(EPOCHS, model, optimizer, scheduler, dataset_train, dataset_test)
+    fit(EPOCHS, ddp_model, optimizer, scheduler, dataset_train, dataset_test)
 
     if (idr_torch.rank == 0):
         print("We're finished !")
