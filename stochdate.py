@@ -319,7 +319,7 @@ if __name__ == "__main__":
 
             if (idr_torch.rank == 0):
                 print("[%d/%d] in %s Evaluation loss : %.4f  |  Training loss : %.4f" % (epoch, epochs, str(datetime.now() - start), loss_eval, loss_training), flush=True)
-                if ce is not None:
+                if not model.module.training:
                     print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f" % (ce, lr, mae, acc), flush=True)
 
     fit(EPOCHS, model, optimizer, scheduler, dataset_train, dataset_test)
