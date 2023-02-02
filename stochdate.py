@@ -136,8 +136,6 @@ if __name__ == "__main__":
                                                 num_warmup_steps = 0, 
                                                 num_training_steps = total_steps)
 
-    batch = dataset_train[:BATCH_SIZE]
-
     def get_loss_batch(batch, model):
 
         obs_0 = batch['y_0']
