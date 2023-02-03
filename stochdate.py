@@ -302,7 +302,7 @@ if __name__ == "__main__":
                 if (idr_torch.rank == 0):
                     model.eval()
 
-                    torch.save(model, os.path.join("model", "%s_ckpt.pt" % model.method))
+                    torch.save(model, os.path.join("model", "%s_ckpt.pt" % model.module.method))
 
                     with torch.no_grad():
                         loss_eval = 0
