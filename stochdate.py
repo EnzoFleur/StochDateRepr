@@ -98,6 +98,7 @@ if __name__ == "__main__":
     data_dir = args.dataset
     DATASET = data_dir.split(os.sep)[-2]
     BATCH_SIZE = args.batchsize
+    REDUCED_BS = BATCH_SIZE // idr_torch.size
     EPOCHS = args.epochs
     LEARNING_RATE = args.learningrate
     ENCODER = args.encoder
@@ -228,7 +229,7 @@ if __name__ == "__main__":
             corpus = texts[i:i+l]
             author_embedding = []
 
-            for c in chunks(corpus, BATCH_SIZE):
+            for c in chunks(corpus, REDUCED_BS):
 
                 input_ids, attention_masks = dataset_train.tokenize_caption(c, device)
                 z_0 = model(input_ids, attention_masks).cpu().numpy().mean(axis=0)
@@ -243,7 +244,7 @@ if __name__ == "__main__":
 
             time_embedding = []
 
-            for c in chunks(corpus, BATCH_SIZE):
+            for c in chunks(corpus, REDUCED_BS):
 
                 input_ids, attention_masks = dataset_train.tokenize_caption(c, device)
                 z_0 = model(input_ids, attention_masks).cpu().numpy().mean(axis=0)
@@ -254,7 +255,7 @@ if __name__ == "__main__":
 
         time_embeddings = np.vstack(time_embeddings)
 
-        for c in chunks(list(dataset_test.data.texts), BATCH_SIZE):
+        for c in chunks(list(dataset_test.data.texts), REDUCED_BS):
 
             input_ids, attention_masks = dataset_train.tokenize_caption(c, device)
             z_0 = model(input_ids, attention_masks).cpu().numpy()
@@ -270,8 +271,8 @@ if __name__ == "__main__":
 
     def fit(epochs, model, optimizer, scheduler, dataset_train, dataset_test):
 
-        dataloader_train = DataLoader(dataset_train, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
-        dataloader_test = DataLoader(dataset_test, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+        dataloader_train = DataLoader(dataset_train, batch_size=REDUCED_BS, shuffle=True, pin_memory=True)
+        dataloader_test = DataLoader(dataset_test, batch_size=REDUCED_BS, shuffle=False, pin_memory=True)
 
         loss_eval = 0
         for epoch in range(1, epochs+1):
