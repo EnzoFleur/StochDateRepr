@@ -121,7 +121,7 @@ if __name__ == "__main__":
                             tokenizer = ENCODER,
                             finetune = FINETUNE).to(device)
 
-    ddp_model = DDP(model, device_ids=[idr_torch.local_rank])
+    ddp_model = DDP(model, device_ids=[idr_torch.local_rank], find_unused_parameters=True)
 
     total_steps = len(dataset_train) * EPOCHS
 
