@@ -136,7 +136,7 @@ if __name__ == "__main__":
                                                 num_warmup_steps = 0, 
                                                 num_training_steps = total_steps)
 
-    def get_loss_batch(batch, model):
+    def get_loss_batch(batch, model, loss):
 
         obs_0 = batch['y_0']
         obs_t = batch['y_t']
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
         # log_q_y_T = model.get_log_q(z_t)
 
-        if model.loss == "BB":
+        if loss == "BB":
             loss_fn = BrownianBridgeLoss(
                         z_0=z_0,
                         z_t=z_t,
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                         H=HURST,
                         eps=0.5
                     )
-        elif model.loss == "fBM":
+        elif loss == "fBM":
             loss_fn = BrownianLoss(
                 z_0=z_0,
                 z_t=z_t,
@@ -188,9 +188,7 @@ if __name__ == "__main__":
                 eps=0.5
             )
 
-        loss = loss_fn.get_loss()
-
-        return loss
+        return loss_fn.get_loss()
 
     def cosine_similarity(aut_embeddings, time_embeddings, doc_embeddings, axis, times):
 
@@ -285,7 +283,7 @@ if __name__ == "__main__":
             loss_training = 0
             for batch in tqdm(dataloader_train):  
 
-                loss = get_loss_batch(batch, model)
+                loss = get_loss_batch(batch, model, model.module.loss)
                 
                 optimizer.zero_grad()
 
@@ -310,7 +308,7 @@ if __name__ == "__main__":
                         loss_eval = 0
                         for batch in tqdm(dataloader_test):
 
-                            loss = get_loss_batch(batch, model)
+                            loss = get_loss_batch(batch, model, model.module.loss)
                             loss_eval+= loss.item()
 
                         loss_eval/=len(dataloader_test)

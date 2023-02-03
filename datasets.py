@@ -99,7 +99,7 @@ class PapersDataset(Dataset):
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
         self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[[self.axis, 'axis2id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
