@@ -317,9 +317,9 @@ if __name__ == "__main__":
                         ce, lr, mae, acc = eval(model, dataset_test, dataset_train)               
 
             if (idr_torch.rank == 0):
-                print("[%d/%d] in %s Evaluation loss : %.4f  |  Training loss : %.4f" % (epoch, epochs, str(datetime.now() - start), loss_eval, loss_training), flush=True)
+                print("[%d/%d] in %s Evaluation loss : %.4f  |  Training loss : %.4f \n" % (epoch, epochs, str(datetime.now() - start), loss_eval, loss_training), flush=True)
                 if not model.module.training:
-                    print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f" % (ce, lr, mae, acc), flush=True)
+                    print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f \n" % (ce, lr, mae, acc), flush=True)
 
     fit(EPOCHS, ddp_model, optimizer, scheduler, dataset_train, dataset_test)
 
