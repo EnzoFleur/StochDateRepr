@@ -132,7 +132,7 @@ if __name__ == "__main__":
     #         {'params':ddp_model.module.classifier.parameters(), 'lr':LEARNING_RATE}
     #     ])
 
-    optimizer = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
+    optimizer = torch.optim.Adam(ddp_model.parameters(), lr = LEARNING_RATE)
 
     scheduler = get_linear_schedule_with_warmup(optimizer,
                                                 num_warmup_steps = 0, 
@@ -285,7 +285,7 @@ if __name__ == "__main__":
             loss_training = 0
             for batch in tqdm(dataloader_train):  
 
-                loss = get_loss_batch(batch, model, model.loss)
+                loss = get_loss_batch(batch, model, model.module.loss)
                 
                 optimizer.zero_grad()
 
