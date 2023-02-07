@@ -103,7 +103,7 @@ class PapersDataset(Dataset):
 
     def tokenize_caption(self, caption, device):
 
-        output = self.tokenizer(caption, padding=True, return_tensors='pt')
+        output = self.tokenizer(caption, padding=True, truncation=True, max_length=self.max_len, return_tensors='pt')
 
         input_ids = output['input_ids']
         attention_mask = output['attention_mask']

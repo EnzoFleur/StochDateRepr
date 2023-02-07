@@ -48,7 +48,8 @@ def chunks(lst, n):
 # data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_cornell.csv"
 # data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\nytg\\corpus.json"
 
-# BATCH_SIZE = 32
+# BATCH_SIZE = 8
+# REDUCED_BS = BATCH_SIZE
 # EPOCHS = 10
 # LEARNING_RATE = 1e-4
 # LATENT_SIZE = 32
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     #         {'params':ddp_model.module.classifier.parameters(), 'lr':LEARNING_RATE}
     #     ])
 
-    optimizer = torch.optim.Adam(ddp_model.parameters(), lr = LEARNING_RATE)
+    optimizer = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
 
     scheduler = get_linear_schedule_with_warmup(optimizer,
                                                 num_warmup_steps = 0, 
@@ -171,7 +172,7 @@ if __name__ == "__main__":
                         # log_q_y_T=log_q_y_T,
                         max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                         H=HURST,
-                        eps=0.5
+                        eps=1e-1
                     )
         elif loss == "fBM":
             loss_fn = BrownianLoss(
@@ -186,7 +187,7 @@ if __name__ == "__main__":
                 # log_q_y_T=log_q_y_T,
                 max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                 H=HURST,
-                eps=0.5
+                eps=1e-1
             )
 
         return loss_fn.get_loss()
@@ -284,7 +285,7 @@ if __name__ == "__main__":
             loss_training = 0
             for batch in tqdm(dataloader_train):  
 
-                loss = get_loss_batch(batch, model, model.module.loss)
+                loss = get_loss_batch(batch, model, model.loss)
                 
                 optimizer.zero_grad()
 
