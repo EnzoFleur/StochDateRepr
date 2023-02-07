@@ -21,25 +21,60 @@ GPT2_PATH = os.path.join("..", "GPT2")
 BERT_START_INDEX = 101
 BERT_END_INDEX = 102
 
-# def set_seed(graine):
-#     random.seed(graine)
-#     np.random.seed(graine)
-#     torch.manual_seed(graine)
-#     torch.cuda.manual_seed_all(graine)
+nyt_topics = ["tennis",
+"housing",
+"civil war and guerrilla warfare",
+"golf",
+"deaths (obituaries)",
+"dancing",
+"women",
+"blacks",
+"mergers, acquisitions and divestitures",
+"hijacking",
+"police",
+"news and news media",
+"stocks and bonds",
+"research",
+"election issues",
+"world trade center (nyc)",
+"accidents and safety",
+"budgets and budgeting",
+"labor",
+"hockey, ice",
+"children and youth",
+"education and schools",
+"suits and litigation",
+"united states politics and government",
+"computers and the internet",
+"economic conditions and trends",
+"murders and attempted murders",
+"playoff games",
+"art",
+"law and legislation",
+"restaurants",
+"medicine and health",
+"airlines and airplanes",
+"books and literature",
+"ethics",
+"motion pictures",
+"theater",
+"united states armament and defense",
+"finances",
+"music",
+"elections",
+"television",
+"terrorism",
+"united states international relations",
+"basketball",
+"politics and government",
+"football",
+"biographical information",
+"baseball",
+"reviews"
+]
 
-############# Text Reader ###############
-# def clean_str(string):
-#     string= re.sub(r"[^A-Za-z0-9!\"\£\€#$%\&\’'()\*\+,\-.\/:;\<\=\>?\@[\]\^\_`{\|}\~\n]", " ", string)
-#     string = re.sub(r"\s{2,}", " ", string)
-#     return string.strip()
-    
-# def read(file_path):
-#     with open(file_path, mode='r', encoding='utf-8') as f_in:
-#         content=clean_str(f_in.read())
-#     return(content)
-
-# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\nytg\\imputation\\corpus.json"
-# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_40.csv"
+# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\nytg\\corpus.json"
+# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_cornell.csv"
 
 class PapersDataset(Dataset):
 
@@ -66,10 +101,12 @@ class PapersDataset(Dataset):
                                 converters={'authors': literal_eval, 'topics':literal_eval})
         self.data = self.data.explode(self.axis)
 
-        self.data['update_date'] = pd.to_datetime(self.data.update_date, format = '%d/%m/%Y')
+        # self.data['date'] = pd.to_datetime(self.data.update_date, format = '%d/%m/%Y')
+        self.data['date'] = pd.to_datetime(self.data['created'], format = "%a, %d %b %Y", exact=False)
+        self.data = self.data[self.data['date']>'01/01/2010']
 
-        self.min_date = min(self.data.update_date)
-        self.max_date = max(self.data.update_date)
+        self.min_date = min(self.data.date)
+        self.max_date = max(self.data.date)
 
         if self.train:
             self.data, _ = train_test_split(
@@ -86,14 +123,14 @@ class PapersDataset(Dataset):
                                             random_state=self.seed
                                             )
 
-        self.data = self.data.sort_values([self.axis, 'update_date'])
+        self.data = self.data.sort_values([self.axis, 'date'])
 
         self.axis2id = {a:i for i, a in enumerate(self.data[self.axis].unique())}
         self.id2axis = {i:a for a,i in self.axis2id.items()}
 
-        self.data['ddelta'] = (self.data.update_date - self.min_date).dt.days
+        self.data['ddelta'] = (self.data.date - self.min_date).dt.days
 
-        self.data['pdelta'] = (self.data.update_date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
+        self.data['pdelta'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
 
         self.data['corpus_length'] = self.data.groupby(self.axis)[self.axis].transform("count")
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
@@ -186,6 +223,9 @@ class NytDataset(Dataset):
         self.data = self.data.explode('authors').explode('texts')
 
         self.data = self.data.explode(self.axis)
+
+        if self.axis == 'topics':
+            self.data = self.data[self.data.topics.isin(nyt_topics)]
 
         self.data['date'] = pd.to_datetime(self.data.date, format='%Y-%m-%d')
 
