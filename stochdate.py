@@ -264,6 +264,9 @@ if __name__ == "__main__":
             doc_embeddings.append(z_0)
 
         doc_embeddings = np.vstack(doc_embeddings)
+
+        np.save(os.path.join("model", DATASET, AXIS, "%s_docs.npy" % (model.module.method)), doc_embeddings)
+
         author_embeddings = np.vstack(author_embeddings)
 
         ce, lr, mae, acc = cosine_similarity(author_embeddings, time_embeddings, doc_embeddings, dataset_test.data.axis_id, dataset_test.data.timestep)
@@ -303,8 +306,11 @@ if __name__ == "__main__":
 
                 if (idr_torch.rank == 0):
                     model.eval()
+                    
+                    if not os.path.isdir(os.path.join("model", DATASET, AXIS)):
+                        os.mkdir(os.path.join("model", DATASET, AXIS))
 
-                    torch.save(model, os.path.join("model", "%s_ckpt.pt" % model.module.method))
+                    torch.save(model, os.path.join("model", DATASET, AXIS, "%s_ckpt.pt" % (model.module.method)))
 
                     with torch.no_grad():
                         loss_eval = 0
