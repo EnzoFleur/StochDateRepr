@@ -74,7 +74,7 @@ nyt_topics = ["tennis",
 ]
 
 # data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\nytg\\corpus.json"
-# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_cornell.csv"
+data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_cornell.csv"
 
 class PapersDataset(Dataset):
 
@@ -132,11 +132,15 @@ class PapersDataset(Dataset):
 
         self.data['pdelta'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
 
+        self.data['start_pin'] = self.data.groupby(self.axis)['ddelta'].transform('min')
+        self.data['end_pin'] = self.data.groupby(self.axis)['ddelta'].transform('max')
+
         self.data['corpus_length'] = self.data.groupby(self.axis)[self.axis].transform("count")
+
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
         self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'abstract', 'pdelta', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -190,7 +194,9 @@ class PapersDataset(Dataset):
             'class_t_': y_0['pdelta'],
             'class_t': y_t['pdelta'],
             'class_T': y_T['pdelta'],
-            'axis':y_0['axis_id']
+            'axis':y_0['axis_id'],
+            'start_pin':item['start_pin'],
+            'end_pin':item['end_pin']
         }
 
         return result
@@ -263,11 +269,14 @@ class NytDataset(Dataset):
 
         self.data['pdelta'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
 
+        self.data['start_pin'] = self.data.groupby(self.axis)['ddelta'].transform('min')
+        self.data['end_pin'] = self.data.groupby(self.axis)['ddelta'].transform('max')
+
         self.data['corpus_length'] = self.data.groupby(self.axis)[self.axis].transform("count")
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
         self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'texts', 'pdelta', 'ddelta']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'texts', 'pdelta', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -321,141 +330,12 @@ class NytDataset(Dataset):
             'class_t_': y_0['pdelta'],
             'class_t': y_t['pdelta'],
             'class_T': y_T['pdelta'],
-            'axis':y_0['axis_id']
+            'axis':y_0['axis_id'],
+            'start_pin':item['start_pin'],
+            'end_pin':item['end_pin']
         }
 
         return result
 
     def __len__(self):
         return len(self.processed_data)
-
-# arxiv = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv\\arxiv.json"
-
-# with open(arxiv, 'r') as f:
-#     data = json.load(f)
-
-# for d in data:
-#     d['author'] = [v['name'] for v in eval(d['author'])]
-#     d['link'] = [v['href'] for v in eval(d['link'])]
-#     d['tag'] = [v['term'] for v in eval(d['tag']) if v['term'] in taxonomy]
-
-# df = pd.DataFrame.from_dict(data)
-# df = df.explode("author")
-# df['count'] = df.groupby("author")["author"].transform("count")
-
-# df[["author", "count"]].drop_duplicates("author")['count'].describe()
-
-# df2 = df[df["count"]>19]
-
-# print(df2[["author", "count"]].drop_duplicates("author")['count'].describe())
-
-# print(len(df2))
-# print(len(df2.author.unique()))
-
-# df2.head()
-
-# s2g = "C:\\Users\\EnzoT\\Documents\\datasets\\s2g\\modeling\\corpus.json"
-
-# with open(s2g, 'r') as f:
-#     data = f.readlines()
-
-# nytg = "C:\\Users\\EnzoT\\Documents\\datasets\\nytg\\modeling\\corpus.json"
-
-# with open(nytg, 'r') as f:
-#     data = f.readlines()
-
-# data = [json.loads(a) for a in data]
-
-# df = pd.DataFrame.from_dict(data)
-
-# df = df.explode("authors")
-# df = df.explode("texts")
-
-# df['count'] = df.groupby("authors")["authors"].transform("count")
-
-# df[["authors", "count"]].drop_duplicates("authors")['count'].describe()
-
-
-
-# data_dir = "C:\\Users\\EnzoT\\Documents\\datasets\\arxiv_cornell\\arxiv_cornell.json"
-
-# with open(data_dir, 'r', encoding='utf-8') as f:
-#     data = f.readlines()
-
-# papers = []
-# for paper in data:
-#     papers.append(json.loads(paper))
-
-# for paper in papers:
-#     paper.update(paper["versions"][-1])
-
-# df = pd.DataFrame.from_dict(papers)
-
-# df['update_date'] = pd.to_datetime(df["update_date"])
-
-# # Max numbers of versions : 187
-# # Average number of versions : 1.57
-
-# start = datetime(2010,1,1)
-# end = datetime(2020,1,1)
-
-# mask = (df["update_date"] > start) & (df["update_date"] < end)
-
-# df = df.loc[mask]
-
-# df = df[df.categories.str.contains("|".join(cs_cat))]
-
-# df = df.explode('authors_parsed')
-# df['authors_parsed'] = df['authors_parsed'].str.join(' ').str.strip()
-# df['count'] = df.groupby("authors_parsed")["authors_parsed"].transform("count")
-
-# df2 = df[df["count"]>39]
-
-# print(df2[["authors_parsed", "count"]].drop_duplicates("authors_parsed")['count'].describe())
-
-
-# print(len(df2))
-# print(len(df2.author.unique()))
-
-# df2.head()
-
-
-# authors = list(df["authors_parsed"])
-# authors = [[' '.join(a).strip() for a in author] for author in authors]
-# authors = [item for sublist in authors for item in sublist]
-
-# authors_count = Counter(authors)
-
-# authors_count = pd.DataFrame(dict(authors_count).items(), columns=["author", "number"])
-# authors_count = authors_count.sort_values('number', ascending=False)
-
-# authors_count[authors_count.number >= 100]
-
-# taxonomy = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph',
-#  'astro-ph.CO', 'astro-ph.EP', 'astro-ph.GA', 'astro-ph.HE', 'astro-ph.IM', 'astro-ph.SR', 'atom-ph',
-#  'bayes-an', 'chao-dyn', 'chem-ph', 'cmp-lg', 'comp-gas', 'cond-mat', 'cond-mat.dis-nn', 'cond-mat.mes-hall',
-#  'cond-mat.mtrl-sci', 'cond-mat.other', 'cond-mat.quant-gas', 'cond-mat.soft', 'cond-mat.stat-mech',
-#  'cond-mat.str-el', 'cond-mat.supr-con', 'cs.AI', 'cs.AR', 'cs.CC', 'cs.CE', 'cs.CG', 'cs.CL', 'cs.CR', 'cs.CV',
-#  'cs.CY', 'cs.DB', 'cs.DC', 'cs.DL', 'cs.DM', 'cs.DS', 'cs.ET', 'cs.FL', 'cs.GL', 'cs.GR', 'cs.GT', 'cs.HC',
-#  'cs.IR', 'cs.IT', 'cs.LG', 'cs.LO', 'cs.MA', 'cs.MM', 'cs.MS', 'cs.NA', 'cs.NE', 'cs.NI', 'cs.OH', 'cs.OS',
-#  'cs.PF', 'cs.PL', 'cs.RO', 'cs.SC', 'cs.SD', 'cs.SE', 'cs.SI', 'cs.SY', 'dg-ga', 'econ.EM', 'econ.GN',
-#  'econ.TH', 'eess.AS', 'eess.IV', 'eess.SP', 'eess.SY', 'funct-an', 'gr-qc', 'hep-ex', 'hep-lat', 'hep-ph',
-#  'hep-th', 'math-ph', 'math.AC', 'math.AG', 'math.AP', 'math.AT', 'math.CA', 'math.CO', 'math.CT',
-#  'math.CV', 'math.DG', 'math.DS', 'math.FA', 'math.GM', 'math.GN', 'math.GR', 'math.GT', 'math.HO',
-#   'math.IT', 'math.KT', 'math.LO', 'math.MG', 'math.MP', 'math.NA', 'math.NT', 'math.OA', 'math.OC', 
-#  'math.PR', 'math.QA', 'math.RA', 'math.RT', 'math.SG', 'math.SP', 'math.ST', 'mtrl-th', 'nlin.AO',
-#  'nlin.CD', 'nlin.CG', 'nlin.PS', 'nlin.SI', 'nucl-ex', 'nucl-th', 'patt-sol', 'physics.acc-ph', 'physics.ao-ph',
-#  'physics.app-ph', 'physics.atm-clus', 'physics.atom-ph', 'physics.bio-ph', 'physics.chem-ph', 'physics.class-ph',
-#  'physics.comp-ph', 'physics.data-an', 'physics.ed-ph', 'physics.flu-dyn', 'physics.gen-ph', 'physics.geo-ph',
-#  'physics.hist-ph', 'physics.ins-det', 'physics.med-ph', 'physics.optics', 'physics.plasm-ph', 'physics.pop-ph',
-#  'physics.soc-ph', 'physics.space-ph', 'plasm-ph', 'q-alg', 'q-bio', 'q-bio.BM', 'q-bio.CB', 'q-bio.GN',
-#  'q-bio.MN', 'q-bio.NC', 'q-bio.OT', 'q-bio.PE', 'q-bio.QM', 'q-bio.SC', 'q-bio.TO', 'q-fin.CP', 
-#  'q-fin.EC', 'q-fin.GN', 'q-fin.MF', 'q-fin.PM', 'q-fin.PR', 'q-fin.RM', 'q-fin.ST', 'q-fin.TR', 
-#  'quant-ph', 'solv-int', 'stat.AP', 'stat.CO', 'stat.ME', 'stat.ML', 'stat.OT', 'stat.TH', 'supr-con',
-#  'test','test.dis-nn', 'test.mes-hall','test.mtrl-sci','test.soft','test.stat-mech',
-#  'test.str-el','test.supr-con']
-
-# cs_cat = ['cs.AI', 'cs.AR', 'cs.CC', 'cs.CE', 'cs.CG', 'cs.CL', 'cs.CR', 'cs.CV',
-#  'cs.CY', 'cs.DB', 'cs.DC', 'cs.DL', 'cs.DM', 'cs.DS', 'cs.ET', 'cs.FL', 'cs.GL', 'cs.GR', 'cs.GT', 'cs.HC',
-#  'cs.IR', 'cs.IT', 'cs.LG', 'cs.LO', 'cs.MA', 'cs.MM', 'cs.MS', 'cs.NA', 'cs.NE', 'cs.NI', 'cs.OH', 'cs.OS',
-#  'cs.PF', 'cs.PL', 'cs.RO', 'cs.SC', 'cs.SD', 'cs.SE', 'cs.SI', 'cs.SY']

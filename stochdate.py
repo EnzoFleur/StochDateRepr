@@ -16,7 +16,6 @@ from transformers import get_linear_schedule_with_warmup
 from datasets import PapersDataset, NytDataset
 
 # Setting up the device for GPU usage
-
 from torch import cuda
 
 import torch
@@ -32,7 +31,7 @@ dist.init_process_group(backend = 'nccl',
                         rank = idr_torch.rank)
 
 torch.cuda.set_device(idr_torch.local_rank)
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def set_seed(graine):
     seed(graine)
@@ -59,6 +58,7 @@ def chunks(lst, n):
 # HURST = 0.9
 # TIME = 'Y'
 # AXIS = 'authors'
+# PINNING = True
 
 if __name__ == "__main__":
 
@@ -90,6 +90,9 @@ if __name__ == "__main__":
                         help='Hurst parameter (if loss is BB)')
     parser.add_argument('-es','--embeddingsize', default=32, type=int,
                         help='Size of the latent representation')
+    parser.add_argument('--pinning', action='store_true')
+    parser.add_argument('--no-pinning', dest='pinning', action='store_false')
+    parser.set_defaults(pinning=True)
     parser.add_argument('-ax','--axis', default='authors', type=str,
                         help='Axis defining trajectories (either authors or topics)')
     parser.add_argument('-t','--timeprecision', default='Y', type=str,
@@ -106,11 +109,13 @@ if __name__ == "__main__":
     LOSS = args.loss
     HURST = args.hurst
     FINETUNE  = args.finetune
+    PINNING = args.pinning
     LATENT_SIZE = args.embeddingsize
     AXIS = args.axis
     TIME = args.timeprecision
 
     if DATASET == "arxiv_cornell":
+        data_dir = data_dir.replace("cornell.csv", AXIS + ".csv")
         dataset_train = PapersDataset(data_dir = data_dir, encoder=ENCODER, train=True, seed=42, axis=AXIS, time_precision=TIME)
         dataset_test = PapersDataset(data_dir = data_dir, encoder=ENCODER, train=False, seed=42, axis=AXIS, time_precision=TIME)
     elif DATASET == "nytg":
@@ -167,12 +172,12 @@ if __name__ == "__main__":
                         t_=t_s,
                         t=ts,
                         T=Ts,
-                        alpha=0,
-                        var=0,
+                        pin=PINNING, start_pin=batch['start_pin'], end_pin=batch['end_pin'],
                         # log_q_y_T=log_q_y_T,
                         max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                         H=HURST,
-                        eps=1e-1
+                        eps=1e-4,
+                        label=batch['axis']
                     )
         elif loss == "fBM":
             loss_fn = BrownianLoss(
@@ -182,12 +187,12 @@ if __name__ == "__main__":
                 t_=t_s,
                 t=ts,
                 T=Ts,
-                alpha=0,
-                var=0,
+                pin=PINNING, start_pin=batch['start_pin'], end_pin=batch['end_pin'],
                 # log_q_y_T=log_q_y_T,
                 max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                 H=HURST,
-                eps=1e-1
+                eps=1e-4,
+                label=batch['axis']
             )
 
         return loss_fn.get_loss()
