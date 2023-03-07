@@ -92,7 +92,7 @@ if __name__ == "__main__":
                         help='Size of the latent representation')
     parser.add_argument('--pinning', action='store_true')
     parser.add_argument('--no-pinning', dest='pinning', action='store_false')
-    parser.set_defaults(pinning=True)
+    parser.set_defaults(pinning=False)
     parser.add_argument('-ax','--axis', default='authors', type=str,
                         help='Axis defining trajectories (either authors or topics)')
     parser.add_argument('-t','--timeprecision', default='Y', type=str,
