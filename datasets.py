@@ -111,14 +111,14 @@ class PapersDataset(Dataset):
         if self.train:
             self.data, _ = train_test_split(
                                             self.data,
-                                            test_size=0.2,
+                                            test_size=0.3,
                                             stratify=self.data[[self.axis]],
                                             random_state=self.seed
                                             )
         else:
             _, self.data = train_test_split(
                                             self.data,
-                                            test_size=0.2,
+                                            test_size=0.3,
                                             stratify=self.data[[self.axis]],
                                             random_state=self.seed
                                             )
