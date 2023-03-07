@@ -72,7 +72,7 @@ class MLP(nn.Module):
 class BrownianEncoder(nn.Module):
     def __init__(self, hidden_dim, latent_dim, loss, H,
                 tokenizer,
-                finetune):
+                finetune, method):
         super(BrownianEncoder, self).__init__()
 
         self.hidden_dim = hidden_dim
@@ -81,7 +81,7 @@ class BrownianEncoder(nn.Module):
         self.tokenizer = tokenizer
         self.loss = loss
 
-        self.method = "%s_FT%d_%s_H%0.2f" % (tokenizer, finetune, loss, H) 
+        self.method = method 
 
         print(self.method)
 

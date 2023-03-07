@@ -122,11 +122,13 @@ if __name__ == "__main__":
         dataset_train = NytDataset(data_dir = data_dir, encoder=ENCODER, train=True, seed=42, time_precision=TIME)
         dataset_test = NytDataset(data_dir = data_dir, encoder=ENCODER, train=False, seed=42, time_precision=TIME)
     
+    method = "%s_FT%d_P%d_%s_H%0.2f" % (ENCODER, FINETUNE, PINNING, LOSS, HURST)
+
     model = BrownianEncoder(hidden_dim=512, latent_dim=LATENT_SIZE,
                             loss = LOSS,
                             H=HURST,
                             tokenizer = ENCODER,
-                            finetune = FINETUNE).to(device)
+                            finetune = FINETUNE, method = method).to(device)
 
     ddp_model = DDP(model, device_ids=[idr_torch.local_rank], find_unused_parameters=True)
 
