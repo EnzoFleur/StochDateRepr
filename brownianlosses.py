@@ -15,7 +15,7 @@ class BrownianBridgeLoss(object):
     def __init__(self,
                 z_0, z_t, z_T,
                 t_, t, T,
-                alpha, var,
+                pin, start_pin, end_pin,
                 # log_q_y_T,
                 max_seq_len, H,
                 eps=1e-6,
@@ -29,8 +29,9 @@ class BrownianBridgeLoss(object):
         self.t_ = t_
         self.t = t
         self.T = T
-        self.alpha = alpha
-        self.var = var
+        self.pin = pin
+        self.start_pin = start_pin
+        self.end_pin = end_pin
         self.loss_f = self.simclr_loss
         self.eps= eps
         self.max_seq_len = max_seq_len
@@ -71,13 +72,13 @@ class BrownianBridgeLoss(object):
         loss = 0.0
         mse_loss_f = nn.MSELoss()
         # start reg
-        start_idxs = torch.where((self.t_) == 0)[0]
+        start_idxs = torch.where((self.t_) == self.start_pin)[0]
         if start_idxs.nelement():
             vals = self.z_0[start_idxs, :]
             start_reg = mse_loss_f(vals, torch.zeros(vals.shape, device=self.device))
             loss += start_reg
         # end reg
-        end_idxs = torch.where((self.T) == self.max_seq_len - 1)[0]
+        end_idxs = torch.where((self.T) == self.end_pin)[0]
         if end_idxs.nelement():
             vals = torch.abs(self.z_T[end_idxs, :])
             end_reg = mse_loss_f(vals, torch.ones(vals.shape, device=self.device)*self.end_pin_val)
@@ -109,9 +110,11 @@ class BrownianBridgeLoss(object):
             loss += loss_i
 
         loss = loss / self.z_T.shape[0]
-        # Regularization for pinning start and end of bridge
-        reg_loss = self.reg_loss()
-        loss += reg_loss
+
+        if self.pin:
+            # Regularization for pinning start and end of bridge
+            reg_loss = self.reg_loss()
+            loss += reg_loss
         return loss
 
     def get_loss(self):
@@ -120,7 +123,7 @@ class BrownianBridgeLoss(object):
 class BrownianLoss(BrownianBridgeLoss):
     def __init__(self,
                 z_0, z_t, z_T, t_, t, T,
-                alpha, var,
+                pin, start_pin, end_pin,
                 # log_q_y_T,
                 max_seq_len,
                 H,
@@ -129,7 +132,7 @@ class BrownianLoss(BrownianBridgeLoss):
                 label=None):
         super().__init__(
             z_0=z_0, z_t=z_t, z_T=z_T,
-            t_=t_, t=t, T=T, alpha=alpha, var=var,
+            t_=t_, t=t, T=T, pin=pin, start_pin=start_pin, end_pin=end_pin,
             # log_q_y_T=log_q_y_T,
             max_seq_len=max_seq_len, H=H, eps=eps,
             C_eta=C_eta,
