@@ -140,8 +140,10 @@ class PapersDataset(Dataset):
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
         self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'abstract',
-                                        'pdelta', 'ddelta', 'start_pin', 'end_pin']].rename(columns={"abstract":"texts"}, inplace=True).to_dict('records')
+        self.data.columns = ['texts' if x=='abstract' else x for x in self.data.columns]
+
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'texts',
+                                        'pdelta', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
