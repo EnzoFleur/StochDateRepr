@@ -130,7 +130,7 @@ class PapersDataset(Dataset):
 
         self.data['ddelta'] = (self.data.date - self.min_date).dt.days
 
-        self.data['pdelta'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
+        self.data['timestep'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
 
         self.data['start_pin'] = self.data.groupby(self.axis)['ddelta'].transform('min')
         self.data['end_pin'] = self.data.groupby(self.axis)['ddelta'].transform('max')
@@ -143,7 +143,7 @@ class PapersDataset(Dataset):
         self.data.columns = ['texts' if x=='abstract' else x for x in self.data.columns]
 
         self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'title', 'texts',
-                                        'pdelta', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
+                                        'timestep', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -194,9 +194,9 @@ class PapersDataset(Dataset):
             't': y_t['ddelta'],
             'T': y_T['ddelta'],
             'total_t': total_docs,
-            'class_t_': y_0['pdelta'],
-            'class_t': y_t['pdelta'],
-            'class_T': y_T['pdelta'],
+            'class_t_': y_0['timestep'],
+            'class_t': y_t['timestep'],
+            'class_T': y_T['timestep'],
             'axis':y_0['axis_id'],
             'start_pin':item['start_pin'],
             'end_pin':item['end_pin']
@@ -270,7 +270,7 @@ class NytDataset(Dataset):
 
         self.data['ddelta'] = (self.data.date - self.min_date).dt.days
 
-        self.data['pdelta'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
+        self.data['timestep'] = (self.data.date.dt.to_period(self.time_precision).view('int64') - self.min_date.to_period(self.time_precision).ordinal)
 
         self.data['start_pin'] = self.data.groupby(self.axis)['ddelta'].transform('min')
         self.data['end_pin'] = self.data.groupby(self.axis)['ddelta'].transform('max')
@@ -279,7 +279,7 @@ class NytDataset(Dataset):
         self.data['doc_id'] = self.data.groupby(self.axis).cumcount()
         self.data['axis_id'] = self.data[self.axis].map(self.axis2id)
 
-        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'texts', 'pdelta', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
+        self.processed_data = self.data[[self.axis, 'axis_id', 'corpus_length', 'doc_id', 'texts', 'timestep', 'ddelta', 'start_pin', 'end_pin']].to_dict('records')
 
     def tokenize_caption(self, caption, device):
 
@@ -330,9 +330,9 @@ class NytDataset(Dataset):
             't': y_t['ddelta'],
             'T': y_T['ddelta'],
             'total_t': total_docs,
-            'class_t_': y_0['pdelta'],
-            'class_t': y_t['pdelta'],
-            'class_T': y_T['pdelta'],
+            'class_t_': y_0['timestep'],
+            'class_t': y_t['timestep'],
+            'class_T': y_T['timestep'],
             'axis':y_0['axis_id'],
             'start_pin':item['start_pin'],
             'end_pin':item['end_pin']
