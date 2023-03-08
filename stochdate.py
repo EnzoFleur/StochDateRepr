@@ -283,7 +283,7 @@ if __name__ == "__main__":
         
         return ce, lr, mae, acc
 
-    def fit(epochs, model, optimizer, scheduler, dataset_train, dataset_test):
+    def fit(epochs, model, optimizer, dataset_train, dataset_test):
 
         dataloader_train = DataLoader(dataset_train, batch_size=REDUCED_BS, shuffle=True, pin_memory=True)
         dataloader_test = DataLoader(dataset_test, batch_size=REDUCED_BS, shuffle=False, pin_memory=True)
@@ -305,8 +305,6 @@ if __name__ == "__main__":
                 loss.backward()
                 # torch.nn.utils.clip_grad_norm_(model.parameters(), CLIPNORM)
                 optimizer.step()
-
-                scheduler.step()
 
                 loss_training+= loss.item()
 
@@ -340,7 +338,7 @@ if __name__ == "__main__":
                 if not model.module.training:
                     print("\t [Evaluation in %s] Coverage : %.2f  | Accuracy : %.2f | MAE : %.1f  | Accuracy : %.2f \n" % (str(datetime.now() - start), ce, lr, mae, acc), flush=True)
 
-    fit(EPOCHS, ddp_model, optimizer, scheduler, dataset_train, dataset_test)
+    fit(EPOCHS, ddp_model, optimizer, dataset_train, dataset_test)
 
     if (idr_torch.rank == 0):
         print("We're finished !")
