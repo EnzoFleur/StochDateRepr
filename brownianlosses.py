@@ -101,7 +101,7 @@ class BrownianBridgeLoss(object):
             # Nominal contrast for random triplet - contrast from in between
             label_i = self.label == self.label[idx]
             label_i[idx] = False
-            label_i.to(device)
+            label_i = label_i.to(device)
 
             neg_i_logit = self._logit(
                 z_0=self.z_0, z_T=self.z_T, z_t=self.z_t[idx],
