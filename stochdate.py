@@ -178,7 +178,7 @@ if __name__ == "__main__":
                         # log_q_y_T=log_q_y_T,
                         max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                         H=HURST,
-                        eps=1e-4,
+                        eps=1e-3,
                         label=batch['axis']
                     )
         elif loss == "fBM":
@@ -193,7 +193,7 @@ if __name__ == "__main__":
                 # log_q_y_T=log_q_y_T,
                 max_seq_len=torch.Tensor(batch['total_t'].float()).to(device),
                 H=HURST,
-                eps=1e-4,
+                eps=1e-3,
                 label=batch['axis']
             )
 
@@ -212,7 +212,8 @@ if __name__ == "__main__":
 
         y_score = normalize( doc_embeddings @ aut_embeddings.transpose(),norm="l1")
         ce = coverage_error(aut_doc_test, y_score)/na*100
-        lr = label_ranking_average_precision_score(aut_doc_test, y_score)*100
+        # lr = label_ranking_average_precision_score(aut_doc_test, y_score)*100
+        lr = accuracy_score(np.argmax(aut_doc_test, axis=1), np.argmax(y_score, axis=1)) *100
 
         time_embeddings = normalize(time_embeddings, axis=1)
 
@@ -293,7 +294,7 @@ if __name__ == "__main__":
             model.train()
 
             loss_training = 0
-            for batch in tqdm(dataloader_train):  
+            for batch in dataloader_train:  
 
                 loss = get_loss_batch(batch, model, model.module.loss)
                 
