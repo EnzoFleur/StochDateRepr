@@ -187,9 +187,9 @@ class PapersDataset(Dataset):
 
         total_docs = item['corpus_length']
         result = {
-            'y_0': y_0['abstract'],
-            'y_t': y_t['abstract'],
-            'y_T': y_T['abstract'],
+            'y_0': y_0['texts'],
+            'y_t': y_t['texts'],
+            'y_T': y_T['texts'],
             't_': y_0['ddelta'],
             't': y_t['ddelta'],
             'T': y_T['ddelta'],
