@@ -320,7 +320,7 @@ if __name__ == "__main__":
                     if not os.path.isdir(os.path.join("model", DATASET, AXIS)):
                         os.mkdir(os.path.join("model", DATASET, AXIS))
 
-                    torch.save(model, os.path.join("model", DATASET, AXIS, "%s_ckpt.pt" % (model.module.method)))
+                    torch.save(model.module.state_dict(), os.path.join("model", DATASET, AXIS, "%s_ckpt.pt" % (model.module.method)))
 
                     with torch.no_grad():
                         loss_eval = 0
