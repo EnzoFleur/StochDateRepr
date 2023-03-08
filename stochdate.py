@@ -124,7 +124,7 @@ if __name__ == "__main__":
     
     method = "%s_FT%d_P%d_%s_H%0.2f" % (ENCODER, FINETUNE, PINNING, LOSS, HURST)
 
-    model = BrownianEncoder(hidden_dim=512, latent_dim=LATENT_SIZE,
+    model = BrownianEncoder(hidden_dim=128, latent_dim=LATENT_SIZE,
                             loss = LOSS,
                             H=HURST,
                             tokenizer = ENCODER,
@@ -132,18 +132,20 @@ if __name__ == "__main__":
 
     ddp_model = DDP(model, device_ids=[idr_torch.local_rank], find_unused_parameters=True)
 
-    total_steps = len(dataset_train) * EPOCHS
+    # total_steps = len(dataset_train) * EPOCHS
 
     # optimizer = torch.optim.Adam(params = [
     #         {'params':ddp_model.module.encoder.parameters(), 'lr':3e-4},
     #         {'params':ddp_model.module.classifier.parameters(), 'lr':LEARNING_RATE}
     #     ])
 
-    optimizer = torch.optim.Adam(ddp_model.parameters(), lr = LEARNING_RATE)
+    # optimizer = torch.optim.Adam(ddp_model.parameters(), lr = LEARNING_RATE)
 
-    scheduler = get_linear_schedule_with_warmup(optimizer,
-                                                num_warmup_steps = 0, 
-                                                num_training_steps = total_steps)
+    # scheduler = get_linear_schedule_with_warmup(optimizer,
+    #                                             num_warmup_steps = 0, 
+    #                                             num_training_steps = total_steps)
+
+    optimizer = torch.optim.SGD(ddp_model.parameters(), lr = 1e-4, momentum=0.9)
 
     def get_loss_batch(batch, model, loss):
 
