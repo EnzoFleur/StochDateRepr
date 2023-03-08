@@ -99,7 +99,7 @@ class BrownianBridgeLoss(object):
         for idx in range(self.z_T.shape[0]):
             # Negative pair: logits over all possible contrasts
             # Nominal contrast for random triplet - contrast from in between
-            label_i = self.label == self.label[idx]
+            label_i = self.label == self.label[idx].to(device)
             label_i[idx] = False
 
             neg_i_logit = self._logit(
