@@ -310,6 +310,8 @@ if __name__ == "__main__":
 
             loss_training /= len(dataloader_train)
 
+            if idr_torch.rank == 0: training_time = datetime.now() - start
+
             if (epoch % 2 == 0):
 
                 if (idr_torch.rank == 0):
@@ -332,9 +334,9 @@ if __name__ == "__main__":
                         ce, lr, mae, acc = eval(model, dataset_test, dataset_train)               
 
             if (idr_torch.rank == 0):
-                print("[%d/%d] in %s Evaluation loss : %.4f  |  Training loss : %.4f \n" % (epoch, epochs, str(datetime.now() - start), loss_eval, loss_training), flush=True)
+                print("[%d/%d] in %s Evaluation loss : %.4f  |  Training loss : %.4f \n" % (epoch, epochs, str(training_time), loss_eval, loss_training), flush=True)
                 if not model.module.training:
-                    print("Coverage : %.2f  | Precision : %.2f | MAE : %.1f  | Accuracy : %.2f \n" % (ce, lr, mae, acc), flush=True)
+                    print("\t [Evaluation in %s] Coverage : %.2f  | Accuracy : %.2f | MAE : %.1f  | Accuracy : %.2f \n" % (str(datetime.now() - start), ce, lr, mae, acc), flush=True)
 
     fit(EPOCHS, ddp_model, optimizer, scheduler, dataset_train, dataset_test)
 
