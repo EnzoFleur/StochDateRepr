@@ -145,7 +145,7 @@ if __name__ == "__main__":
     #                                             num_warmup_steps = 0, 
     #                                             num_training_steps = total_steps)
 
-    optimizer = torch.optim.SGD(ddp_model.parameters(), lr = 1e-4, momentum=0.9)
+    optimizer = torch.optim.SGD(ddp_model.parameters(), lr = LEARNING_RATE, momentum=0.9)
 
     def get_loss_batch(batch, model, loss):
 
